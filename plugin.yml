@@ -1,0 +1,24 @@
+name: Books
+main: me.jonna.CustomBook.New
+version: 1.7.2
+description: Custom book plugin by lepel100 & jn1234
+commands: 
+    cb:
+        description: CustomBook commands
+    custombook:
+        description: CustomBook commands
+permissions:
+  books.admin:
+    description: All books commands
+    children:
+      books.custom.*: true
+      books.join.*: true
+      books.create.*: true
+      books.reload: true
+      books.help: true
+  books.user:
+    description: Commands meant for users
+    children:
+      books.custom.*: true
+      books.join.*: true
+      books.help: true
