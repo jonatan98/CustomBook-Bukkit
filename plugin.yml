@@ -1,8 +1,8 @@
 name: Books
-main: me.jonna.CustomBook.New
+main: me.jonna.CustomBook.Main
 version: 1.7.2
-description: Custom book plugin by lepel100 & jn1234
-commands: 
+description: Custom book plugin by jn1234
+commands:
     cb:
         description: CustomBook commands
     custombook:
