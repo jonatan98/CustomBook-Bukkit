@@ -3,7 +3,6 @@ package me.jonna.CustomBook;
 //Newest version
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -21,13 +20,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class Main extends JavaPlugin implements Listener{
 	public final Logger logger = Logger.getLogger("minecraft");
@@ -89,7 +86,7 @@ public class Main extends JavaPlugin implements Listener{
     				Element bookData = (Element) nNode;
     			
 		    		//TODO find config / permissions to see which custom permissions are required
-		    		Node config = bookData.getElementsByTagName("config").item(0);
+		    		//Node config = bookData.getElementsByTagName("config").item(0);
 		    		
 	    			
 		    		if(p.hasPermission("books.join.*")){
