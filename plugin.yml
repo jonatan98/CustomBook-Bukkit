@@ -1,6 +1,7 @@
 name: Books
 main: me.jonna.CustomBook.Main
-version: 2.0.0
+version: 2.0.1
+authors: [jn1234]
 description: Custom book plugin by jn1234
 commands:
     cb:

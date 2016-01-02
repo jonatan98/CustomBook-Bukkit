@@ -20,14 +20,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 public class Main extends JavaPlugin implements Listener{	
-	public static File _file_joinbooks;
-	public static File _file_normalbooks;
+	public static File _file_books;
 	
 	public static String c_prefix = "[Books] ";
 	public static String p_prefix = "/a/[/5/Books/a/] /f/";
@@ -51,35 +51,20 @@ public class Main extends JavaPlugin implements Listener{
 		File f = new File(getDataFolder() + "/");
 		if(!f.exists())
 		    f.mkdir();
-		_file_joinbooks = new File(getDataFolder() + "/Join Books.xml");
-		if(!_file_joinbooks.exists()){
+		_file_books = new File(getDataFolder() + "/Books.xml");
+		if(!_file_books.exists()){
 		    try {
-				if(_file_joinbooks.createNewFile()){
+				if(_file_books.createNewFile()){
 					console.sendMessage(replaceColors(c_prefix + 
-							"Join Books.xml did not exist, but was successfully created", true));
+							"Books.xml did not exist, but was successfully created", true));
 				}else{
 					console.sendMessage(replaceColors(c_prefix + 
-							"Join Books.xml did not exist, and failed to be created", true));
+							"Books.xml did not exist, and failed to be created", true));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		    Functions.setDefaultContent("joinbooks");
-		}
-		_file_normalbooks = new File(getDataFolder() + "/Normal Books.xml");
-		if(!_file_normalbooks.exists()){
-			try {
-				if(_file_normalbooks.createNewFile()){
-					console.sendMessage(replaceColors(c_prefix + 
-							"Normal Books.xml did not exist, but was successfully created", true));
-				}else{
-					console.sendMessage(replaceColors(c_prefix + 
-							"Normal Books.xml did not exist, and failed to be created", true));
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		    Functions.setDefaultContent("normalbooks");
+		    Functions.setDefaultContent();
 		}
 		Functions.verifyXMLVersions();
 		Functions.initConfig();
@@ -94,29 +79,39 @@ public class Main extends JavaPlugin implements Listener{
 	public void onPlayerJoin(PlayerJoinEvent event){
 		Player p = event.getPlayer();
 		
-		if(!p.hasPlayedBefore()){
-			//Read the Join Books.xml
-			try{
-	    		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-	    		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-	    		Document doc = dBuilder.parse(_file_joinbooks);
-	    				
-	    		//optional, but recommended
-	    		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-	    		doc.getDocumentElement().normalize();
-	    		
-	    		for(int i = 0; i < doc.getElementsByTagName("book").getLength(); i++){
-	    			Node nNode = doc.getElementsByTagName("book").item(i);
-	    					
-	    			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-	
-	    				Element bookData = (Element) nNode;
-	    			
+		//Read Books.xml
+		try{
+    		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+    		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+    		Document doc = dBuilder.parse(_file_books);
+    				
+    		//optional, but recommended
+    		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+    		doc.getDocumentElement().normalize();
+    		
+    		for(int i = 0; i < doc.getElementsByTagName("book").getLength(); i++){
+    			Node nNode = doc.getElementsByTagName("book").item(i);
+    					
+    			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+    				Element bookData = (Element) nNode;
+    				String[] types = bookData.getElementsByTagName("type").item(0).getTextContent().split(",");
+    				boolean isJoinBook = false;
+    				for(int w = 0; w < types.length; w++){
+    					if(types[w].trim().equalsIgnoreCase("join"))
+    						isJoinBook = true;
+    					else if(types[w].trim().equalsIgnoreCase("firstjoin"))
+    						if(!p.hasPlayedBefore())
+    							isJoinBook = true;
+    				}
+    				
+    				if(isJoinBook){
+    			
 			    		//TODO find config / permissions to see which custom permissions are required
 			    		//Node config = bookData.getElementsByTagName("config").item(0);
 			    		
 	    				boolean hasPermission = false;
-	    				String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
+	    				String[] permissions = bookData.getElementsByTagName("permissions").item(1).getTextContent().split(",");
 	    				for(int z = 0; z < permissions.length; z++){
 	    					if(p.hasPermission("books.join." + permissions[z].trim())){
 	    						hasPermission = true;
@@ -159,24 +154,24 @@ public class Main extends JavaPlugin implements Listener{
 				    					bookData.getElementsByTagName("author").item(0).getTextContent(), true));
 			    			}
 			    		}
-		    		}else{
-		    			//Element is of wrong type
-		    			if(debug){
-			    			console.sendMessage(replaceColors(c_prefix + 
-			    					"Element is of wrong type (misconfigured book)", true));
-		    			}
-		    		}
+    				}//ELSE book is not a joinbook
+	    		}else{
+	    			//Element is of wrong type
+	    			if(debug){
+		    			console.sendMessage(replaceColors(c_prefix + 
+		    					"Element is of wrong type (misconfigured book)", true));
+	    			}
 	    		}
-	    		if(doc.getElementsByTagName("book").getLength() == 0 && debug){
-	    			console.sendMessage(replaceColors(
-	    					"No join books are created", true));
-	    		}
-			}catch(Exception e){
-				e.printStackTrace();
-				if(debug){
-					console.sendMessage(replaceColors(c_prefix + 
-							"Failed to read Join Books.xml", true));
-				}
+    		}
+    		if(doc.getElementsByTagName("book").getLength() == 0 && debug){
+    			console.sendMessage(replaceColors(
+    					"No books are created", true));
+    		}
+		}catch(Exception e){
+			e.printStackTrace();
+			if(debug){
+				console.sendMessage(replaceColors(c_prefix + 
+						"Failed to read Books.xml", true));
 			}
 		}
 	}
@@ -187,119 +182,23 @@ public class Main extends JavaPlugin implements Listener{
 		if(label.equalsIgnoreCase("cb") || label.equalsIgnoreCase("custombook")){
 			
 			if(sender instanceof Player){
-				Player p = (Player) sender;
-				if(args.length == 0 || args[0].equalsIgnoreCase("help")){
-					//List of commands
-					List<String> commandos = new ArrayList<String>();
-					commandos.add("cb help - view this information");
-					commandos.add("cb list [join / normal] - get a list of books");
-					commandos.add("cb <book name> - receive a book");
-					
-					p.sendMessage(replaceColors(p_prefix + "Help"));
-					for(int e = 0; e < commandos.size(); e++){
-						p.sendMessage(replaceColors("/" + commandos.get(e)));
-					}
-				}else if(args[0].equalsIgnoreCase("list")){
-					if(args.length == 1 || !args[1].equalsIgnoreCase("join")){
-						//List of normal books
-						p.sendMessage(replaceColors("/6/Normal books"));
-						listBooks(p, "normal");
-					}else{
-						//List of join books
-						p.sendMessage(replaceColors("/6/Join Books"));
-						listBooks(p, "join");
-					}
-				}else if(args[0].equalsIgnoreCase("reload")){
-					if(p.hasPermission("books.reload") || p.hasPermission("books.*")){
-						reloadConfig();
-						debug = getConfig().getBoolean("debug");
-						p.sendMessage(replaceColors(p_prefix + 
-								"Reloaded plugin"));
-					}else{
-						p.sendMessage(replaceColors(no_permission));
-					}
-				}else{
-					//Convert command into a string, to enable multi-word commands
-					String args_str = "";
-					for(int i = 0; i < args.length; i++){ args_str += args[i] + " "; }
-					args_str = args_str.trim();
-					
-					//Look for matches of the string
-					
-					//Read the Normal Books.xml
-					try{
-			    		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			    		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			    		Document doc = dBuilder.parse(_file_normalbooks);
-			    				
-			    		//optional, but recommended
-			    		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-			    		doc.getDocumentElement().normalize();
-			    		
-			    		for(int i = 0; i < doc.getElementsByTagName("book").getLength(); i++){
-			    			Node nNode = doc.getElementsByTagName("book").item(i);
-			    					
-			    			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-			    				Element bookData = (Element) nNode;
-			    				if(bookData.getElementsByTagName("command").item(0).getTextContent()
-			    						.equalsIgnoreCase(args_str)){
-						    		//TODO find config / permissions to see which custom permissions are required
-						    		//Node config = bookData.getElementsByTagName("config").item(0);
-						    		boolean hasPermission = false;
-					    			String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
-						    		for(int z = 0; z < permissions.length; z++){
-						    			if(p.hasPermission("books.normal." + permissions[z].trim())){
-						    				hasPermission = true;
-						    				z = permissions.length;
-						    			}
-						    		}
-						    		
-						    		if(hasPermission || p.hasPermission("books.normal.*") || 
-						    				p.hasPermission("books.*")){
-						    			String title = replaceColors(bookData.getElementsByTagName("title").item(0).getTextContent());
-						    			String author = replaceColors(bookData.getElementsByTagName("author").item(0).getTextContent());
-						    			List<String> lore = new ArrayList<>(bookData.getElementsByTagName("lore").getLength());
-						    			for(int z = 0; z < bookData.getElementsByTagName("lore").getLength(); z++){
-						    				lore.add(z, replaceColors(bookData.getElementsByTagName("lore").item(z).getTextContent()));
-						    			}
-						    			List<String> pages = new ArrayList<>(bookData.getElementsByTagName("page").getLength());
-						    			for(int z = 0; z < bookData.getElementsByTagName("page").getLength(); z++){
-						    				pages.add(z, replaceColors(bookData.getElementsByTagName("page").item(z).getTextContent()));
-						    			}
-						    			short durability = Short.parseShort(bookData.getElementsByTagName("durability").item(0).getTextContent());
-						    			int amount = Integer.parseInt(bookData.getElementsByTagName("amount").item(0).getTextContent());
-						    			
-						    			//Give book
-						    			ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-										BookMeta meta = (BookMeta) book.getItemMeta();
-										meta.setTitle(title);
-										meta.setAuthor(author);
-										meta.setLore(lore);
-										meta.setPages(pages);
-										book.setItemMeta(meta);
-										book.setAmount(amount);
-										book.setDurability(durability);
-								        p.getInventory().addItem(book);
-						    		}else{
-						    			p.sendMessage(replaceColors(no_permission));
-						    		}
-			    				}
-				    		}else{
-				    			//Element is of wrong type
-				    			p.sendMessage(replaceColors("/4/Misconfigured book"));
-				    		}
-				    		
-			    		}
-					}catch(Exception e){
-						e.printStackTrace();
-					}
-				}
+				Player player = (Player) sender;
+				bookCommand(player, args);
 			}else{
-				if(args.length > 0 && args[0].equalsIgnoreCase("reload")){
+				if(args.length == 0){
+					console.sendMessage(replaceColors(c_prefix + "Help", true));
+					console.sendMessage(replaceColors("/cb reload - reload the config.yml", true));
+					console.sendMessage(replaceColors("/cb version - plugin info", true));
+				}else if(args[0].equalsIgnoreCase("reload")){
 					reloadConfig();
 					debug = getConfig().getBoolean("debug");
 					console.sendMessage(replaceColors(c_prefix + 
 							"Reloaded plugin"));
+				}else if(args[0].equalsIgnoreCase("version")){
+					PluginDescriptionFile pdfFile = this.getDescription();
+					List<String> authors = pdfFile.getAuthors();
+					console.sendMessage(replaceColors(c_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0), true));
+					console.sendMessage("Website: http://dev.bukkit.org/bukkit-plugins/custom-book/");
 				}else{
 					//This is what happens if the command is forced trough console
 					console.sendMessage(replaceColors(c_prefix + 
@@ -312,13 +211,137 @@ public class Main extends JavaPlugin implements Listener{
 		return false;
 	}
 	
-	private void listBooks(Player p, String type){
-		File f;
-		if(type.equalsIgnoreCase("join")){
-			f = _file_joinbooks;
+	//Moved to separate function in case it gets interesting to try to use /book to override essentials
+	private void bookCommand(Player p, String[] args){
+		if(args.length == 0 || args[0].equalsIgnoreCase("help")){
+			//List of commands
+			List<String> commandos = new ArrayList<String>();
+			commandos.add("cb help - view this information");
+			commandos.add("cb list [join / normal] - get a list of books");
+			commandos.add("cb <book name> - receive a book");
+			
+			p.sendMessage(replaceColors(p_prefix + "Help"));
+			for(int e = 0; e < commandos.size(); e++){
+				p.sendMessage(replaceColors("/" + commandos.get(e)));
+			}
+		}else if(args[0].equalsIgnoreCase("list")){
+			if(args.length == 1 || !args[1].equalsIgnoreCase("join")){
+				//List of normal books
+				p.sendMessage(replaceColors("/6/Normal books"));
+				listBooks(p, "normal");
+			}else{
+				//List of join books
+				p.sendMessage(replaceColors("/6/Join Books"));
+				listBooks(p, "join");
+			}
+		}else if(args[0].equalsIgnoreCase("reload")){
+			if(p.hasPermission("books.reload") || p.hasPermission("books.*")){
+				reloadConfig();
+				debug = getConfig().getBoolean("debug");
+				p.sendMessage(replaceColors(p_prefix + 
+						"Reloaded plugin"));
+			}else{
+				p.sendMessage(replaceColors(no_permission));
+			}
+		}else if(args[0].equalsIgnoreCase("version")){
+			PluginDescriptionFile pdfFile = this.getDescription();
+			List<String> authors = pdfFile.getAuthors();
+			p.sendMessage(replaceColors(p_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0)));
+			p.sendMessage("Website: http://dev.bukkit.org/bukkit-plugins/custom-book/");
 		}else{
-			f = _file_normalbooks;
+			//Convert command into a string, to enable multi-word commands
+			String args_str = "";
+			for(int i = 0; i < args.length; i++){ args_str += args[i] + " "; }
+			args_str = args_str.trim();
+			
+			//Look for matches of the string
+			
+			//Read the Normal Books.xml
+			try{
+	    		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+	    		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+	    		Document doc = dBuilder.parse(_file_books);
+	    				
+	    		//optional, but recommended
+	    		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+	    		doc.getDocumentElement().normalize();
+	    		
+	    		boolean no_books = true;
+	    		for(int i = 0; i < doc.getElementsByTagName("book").getLength(); i++){
+	    			Node nNode = doc.getElementsByTagName("book").item(i);
+	    					
+	    			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+	    				Element bookData = (Element) nNode;
+	    				boolean isNormalBook = false;
+	    				String[] types = bookData.getElementsByTagName("type").item(0).getTextContent().split(",");
+	    				for(int w = 0; w < types.length; w++){
+	    					if(types[w].trim().equalsIgnoreCase("normal"))
+	    						isNormalBook = true;
+	    				}
+	    				if(isNormalBook){
+		    				if(bookData.getElementsByTagName("command").item(0).getTextContent()
+		    						.equalsIgnoreCase(args_str)){
+		    					no_books = false;
+					    		//TODO find config / permissions to see which custom permissions are required
+					    		//Node config = bookData.getElementsByTagName("config").item(0);
+					    		boolean hasPermission = false;
+				    			String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
+					    		for(int z = 0; z < permissions.length; z++){
+					    			if(p.hasPermission("books.normal." + permissions[z].trim())){
+					    				hasPermission = true;
+					    				z = permissions.length;
+					    			}
+					    		}
+					    		
+					    		if(hasPermission || p.hasPermission("books.normal.*") || 
+					    				p.hasPermission("books.*")){
+					    			String title = replaceColors(bookData.getElementsByTagName("title").item(0).getTextContent());
+					    			String author = replaceColors(bookData.getElementsByTagName("author").item(0).getTextContent());
+					    			List<String> lore = new ArrayList<>(bookData.getElementsByTagName("lore").getLength());
+					    			for(int z = 0; z < bookData.getElementsByTagName("lore").getLength(); z++){
+					    				lore.add(z, replaceColors(bookData.getElementsByTagName("lore").item(z).getTextContent()));
+					    			}
+					    			List<String> pages = new ArrayList<>(bookData.getElementsByTagName("page").getLength());
+					    			for(int z = 0; z < bookData.getElementsByTagName("page").getLength(); z++){
+					    				pages.add(z, replaceColors(bookData.getElementsByTagName("page").item(z).getTextContent()));
+					    			}
+					    			short durability = Short.parseShort(bookData.getElementsByTagName("durability").item(0).getTextContent());
+					    			int amount = Integer.parseInt(bookData.getElementsByTagName("amount").item(0).getTextContent());
+					    			
+					    			//Give book
+					    			ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+									BookMeta meta = (BookMeta) book.getItemMeta();
+									meta.setTitle(title);
+									meta.setAuthor(author);
+									meta.setLore(lore);
+									meta.setPages(pages);
+									book.setItemMeta(meta);
+									book.setAmount(amount);
+									book.setDurability(durability);
+							        p.getInventory().addItem(book);
+					    		}else{
+					    			p.sendMessage(replaceColors(no_permission));
+					    		}
+		    				}
+	    				}//ELSE is not a normal book
+		    		}else{
+		    			//Element is of wrong type
+		    			p.sendMessage(replaceColors("/4/Misconfigured book"));
+		    		}
+		    		
+	    		}
+	    		//Check if no book exists
+	    		if(no_books){
+	    			p.sendMessage(replaceColors(p_prefix + "The book '" + args_str + "/r//f/' does not exist"));
+	    		}
+			}catch(Exception e){
+				e.printStackTrace();
+			}
 		}
+	}
+	
+	private void listBooks(Player p, String type){
+		File f = _file_books;
 		
 		//Read the Book content
 		try{
@@ -331,36 +354,68 @@ public class Main extends JavaPlugin implements Listener{
     		doc.getDocumentElement().normalize();
     		
     		boolean displayed_book = false;
+    		boolean no_perm = false;
     		
     		for(int i = 0; i < doc.getElementsByTagName("book").getLength(); i++){
     			Node nNode = doc.getElementsByTagName("book").item(i);
     					
     			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
     				Element bookData = (Element) nNode;
-    					
-		    		boolean hasPermission = false;
-	    			String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
-		    		for(int z = 0; z < permissions.length; z++){
-		    			if(p.hasPermission("books.normal." + permissions[z].trim())){
-		    				hasPermission = true;
-		    				z = permissions.length;
-		    			}
-		    		}
-		    		
-		    		if(hasPermission || p.hasPermission("books.normal.*") || 
-		    				p.hasPermission("books.*")){
-		    			String title = replaceColors(bookData.getElementsByTagName("title").item(0).getTextContent());
-		    			String author = replaceColors(bookData.getElementsByTagName("author").item(0).getTextContent());
-		    			if(type.equalsIgnoreCase("join")){
-		    				p.sendMessage(title + " by " + author);
-		    			}else{
-		    				String command = replaceColors(bookData.getElementsByTagName("command").item(0).getTextContent());
-		    				p.sendMessage("/cb " + command + ": " + title + " by " + author);
-		    			}
-		    			displayed_book = true;
-		    		}else{
-		    			//No permission to view book
-		    		}
+    				boolean isRightType = false;
+    				String[] types = bookData.getElementsByTagName("type").item(0).getTextContent().split(",");
+    				for(int w = 0; w < types.length; w++){
+    					if(debug){
+    						console.sendMessage("Book type " + w + "of book " + 
+    								bookData.getElementsByTagName("title").item(0).getTextContent() + 
+    								": " + types[w].trim());
+    					}
+    					if(type.equalsIgnoreCase("normal")){
+    						if(types[w].trim().equalsIgnoreCase("normal")){
+    							isRightType = true; 
+    							//Quit the loop
+    							w = types.length;
+							}
+    					}else if(type.equalsIgnoreCase("join")){
+    						if(types[w].trim().equalsIgnoreCase("join") || 
+    								types[w].trim().equalsIgnoreCase("firstjoin")){
+    							isRightType = true;
+    							//Quit the loop
+    							w = types.length;
+    						}
+    					}
+    				}
+    				if(isRightType){
+    					int permission_index = 0;
+    					String permission_str = "books.normal.";
+    					if(type.equalsIgnoreCase("join")){
+    						permission_index = 1;
+    						permission_str = "books.join.";
+    					}
+			    		boolean hasPermission = false;
+		    			String[] permissions = bookData.getElementsByTagName("permissions").item(permission_index).getTextContent().split(",");
+			    		for(int z = 0; z < permissions.length; z++){
+			    			if(p.hasPermission(permission_str + permissions[z].trim())){
+			    				hasPermission = true;
+			    				z = permissions.length;
+			    			}
+			    		}
+			    		
+			    		if(hasPermission || p.hasPermission(permission_str + "*") || 
+			    				p.hasPermission("books.*")){
+			    			String title = bookData.getElementsByTagName("title").item(0).getTextContent();
+			    			String author = bookData.getElementsByTagName("author").item(0).getTextContent();
+			    			if(type.equalsIgnoreCase("join")){
+			    				p.sendMessage(replaceColors(title + "/r//f/ by " + author));
+			    			}else{
+			    				String command = bookData.getElementsByTagName("command").item(0).getTextContent();
+			    				p.sendMessage(replaceColors("/cb " + command + ": " + title + "/r//f/ by " + author));
+			    			}
+			    			displayed_book = true;
+			    		}else{
+			    			//No permission to view book
+			    			no_perm = true;
+			    		}
+    				}//ELSE the book is not of requested type
 	    		}else{
 	    			//Element is of wrong type
 	    			console.sendMessage(replaceColors("/4/Misconfigured book"));
@@ -369,7 +424,10 @@ public class Main extends JavaPlugin implements Listener{
     		}
     		
     		if(!displayed_book){
-    			p.sendMessage(replaceColors(p_prefix + "You do not have permission to obtain any stored books"));
+    			if(no_perm)
+    				p.sendMessage(replaceColors("/4/You do not have permission to obtain any custom books"));
+    			else
+    				p.sendMessage(replaceColors("There are no custom books of the requested type"));
     		}
 		}catch(Exception e){
 			e.printStackTrace();
