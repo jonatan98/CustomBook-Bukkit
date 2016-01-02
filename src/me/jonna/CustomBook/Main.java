@@ -198,7 +198,7 @@ public class Main extends JavaPlugin implements Listener{
 					PluginDescriptionFile pdfFile = this.getDescription();
 					List<String> authors = pdfFile.getAuthors();
 					console.sendMessage(replaceColors(c_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0), true));
-					console.sendMessage("Website: http://dev.bukkit.org/bukkit-plugins/custom-book/");
+					console.sendMessage("Website: " + pdfFile.getWebsite());
 				}else{
 					//This is what happens if the command is forced trough console
 					console.sendMessage(replaceColors(c_prefix + 
@@ -247,7 +247,7 @@ public class Main extends JavaPlugin implements Listener{
 			PluginDescriptionFile pdfFile = this.getDescription();
 			List<String> authors = pdfFile.getAuthors();
 			p.sendMessage(replaceColors(p_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0)));
-			p.sendMessage("Website: http://dev.bukkit.org/bukkit-plugins/custom-book/");
+			p.sendMessage("Website: " + pdfFile.getWebsite());
 		}else{
 			//Convert command into a string, to enable multi-word commands
 			String args_str = "";
