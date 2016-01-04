@@ -243,6 +243,26 @@ public class Main extends JavaPlugin implements Listener{
 			}else{
 				p.sendMessage(replaceColors(no_permission));
 			}
+		}else if(args[0].equalsIgnoreCase("give")){
+			if(args.length >= 3){
+				String args_str = "";
+				for(int o = 2; o < args.length; o++){ args_str += args[o] + " "; }
+				args_str = args_str.trim();
+				if(args[1].equalsIgnoreCase("*") || args[1].equalsIgnoreCase("all")){
+					//Give to all players
+					giveBook(p, null, args_str, "books.give.");
+				}else{
+					//Give to specific player
+					Player targetPlayer = Bukkit.getPlayerExact(args[1]);
+					if(targetPlayer != null){
+						giveBook(p, Bukkit.getPlayer(args[1]), args_str, "books.give.");
+					}else{
+						p.sendMessage(replaceColors("/4/No player by the name " + args[1] + " is online"));
+					}
+				}
+			}else{
+				p.sendMessage(replaceColors("/cb give <player/*> <bookname>"));
+			}
 		}else if(args[0].equalsIgnoreCase("version")){
 			PluginDescriptionFile pdfFile = this.getDescription();
 			List<String> authors = pdfFile.getAuthors();
@@ -254,89 +274,97 @@ public class Main extends JavaPlugin implements Listener{
 			for(int i = 0; i < args.length; i++){ args_str += args[i] + " "; }
 			args_str = args_str.trim();
 			
-			//Look for matches of the string
-			
-			//Read the Normal Books.xml
-			try{
-	    		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-	    		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-	    		Document doc = dBuilder.parse(_file_books);
-	    				
-	    		//optional, but recommended
-	    		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-	    		doc.getDocumentElement().normalize();
-	    		
-	    		boolean no_books = true;
-	    		for(int i = 0; i < doc.getElementsByTagName("book").getLength(); i++){
-	    			Node nNode = doc.getElementsByTagName("book").item(i);
-	    					
-	    			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-	    				Element bookData = (Element) nNode;
-	    				boolean isNormalBook = false;
-	    				String[] types = bookData.getElementsByTagName("type").item(0).getTextContent().split(",");
-	    				for(int w = 0; w < types.length; w++){
-	    					if(types[w].trim().equalsIgnoreCase("normal"))
-	    						isNormalBook = true;
+			giveBook(p, args_str, "books.normal.");
+		}
+	}
+	
+	//Function to give book to a specific player or all players
+	private void giveBook(Player p, String args_str, String permission){
+		giveBook(p, p, args_str, permission);
+	}
+	private void giveBook(Player p, Player tp, String args_str, String permission){
+		try{
+    		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+    		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+    		Document doc = dBuilder.parse(_file_books);
+    				
+    		//optional, but recommended
+    		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+    		doc.getDocumentElement().normalize();
+    		
+    		boolean no_books = true;
+    		for(int i = 0; i < doc.getElementsByTagName("book").getLength(); i++){
+    			Node nNode = doc.getElementsByTagName("book").item(i);
+    					
+    			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+    				Element bookData = (Element) nNode;
+    				boolean isNormalBook = false;
+    				String[] types = bookData.getElementsByTagName("type").item(0).getTextContent().split(",");
+    				for(int w = 0; w < types.length; w++){
+    					if(types[w].trim().equalsIgnoreCase("normal"))
+    						isNormalBook = true;
+    				}
+    				if(isNormalBook){
+	    				if(bookData.getElementsByTagName("command").item(0).getTextContent()
+	    						.equalsIgnoreCase(args_str)){
+	    					no_books = false;
+				    		//TODO find config / permissions to see which custom permissions are required
+				    		//Node config = bookData.getElementsByTagName("config").item(0);
+				    		boolean hasPermission = false;
+			    			String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
+				    		for(int z = 0; z < permissions.length; z++){
+				    			if(p.hasPermission(permission + permissions[z].trim())){
+				    				hasPermission = true;
+				    				z = permissions.length;
+				    			}
+				    		}
+				    		if(hasPermission || p.hasPermission(permission + "*") || 
+				    				p.hasPermission("books.*")){
+				    			String title = replaceColors(bookData.getElementsByTagName("title").item(0).getTextContent());
+				    			String author = replaceColors(bookData.getElementsByTagName("author").item(0).getTextContent());
+				    			List<String> lore = new ArrayList<>(bookData.getElementsByTagName("lore").getLength());
+				    			for(int z = 0; z < bookData.getElementsByTagName("lore").getLength(); z++){
+				    				lore.add(z, replaceColors(bookData.getElementsByTagName("lore").item(z).getTextContent()));
+				    			}
+				    			List<String> pages = new ArrayList<>(bookData.getElementsByTagName("page").getLength());
+				    			for(int z = 0; z < bookData.getElementsByTagName("page").getLength(); z++){
+				    				pages.add(z, replaceColors(bookData.getElementsByTagName("page").item(z).getTextContent()));
+				    			}
+				    			short durability = Short.parseShort(bookData.getElementsByTagName("durability").item(0).getTextContent());
+				    			int amount = Integer.parseInt(bookData.getElementsByTagName("amount").item(0).getTextContent());
+				    			
+				    			//Give book
+				    			ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+								BookMeta meta = (BookMeta) book.getItemMeta();
+								meta.setTitle(title);
+								meta.setAuthor(author);
+								meta.setLore(lore);
+								meta.setPages(pages);
+								book.setItemMeta(meta);
+								book.setAmount(amount);
+								book.setDurability(durability);
+						        if(tp != null){
+						        	tp.getInventory().addItem(book);
+						        }else{
+						        	for(Player player : Bukkit.getOnlinePlayers()){
+						        		player.getInventory().addItem(book);
+						        	}
+						        }
+				    		}
 	    				}
-	    				if(isNormalBook){
-		    				if(bookData.getElementsByTagName("command").item(0).getTextContent()
-		    						.equalsIgnoreCase(args_str)){
-		    					no_books = false;
-					    		//TODO find config / permissions to see which custom permissions are required
-					    		//Node config = bookData.getElementsByTagName("config").item(0);
-					    		boolean hasPermission = false;
-				    			String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
-					    		for(int z = 0; z < permissions.length; z++){
-					    			if(p.hasPermission("books.normal." + permissions[z].trim())){
-					    				hasPermission = true;
-					    				z = permissions.length;
-					    			}
-					    		}
-					    		
-					    		if(hasPermission || p.hasPermission("books.normal.*") || 
-					    				p.hasPermission("books.*")){
-					    			String title = replaceColors(bookData.getElementsByTagName("title").item(0).getTextContent());
-					    			String author = replaceColors(bookData.getElementsByTagName("author").item(0).getTextContent());
-					    			List<String> lore = new ArrayList<>(bookData.getElementsByTagName("lore").getLength());
-					    			for(int z = 0; z < bookData.getElementsByTagName("lore").getLength(); z++){
-					    				lore.add(z, replaceColors(bookData.getElementsByTagName("lore").item(z).getTextContent()));
-					    			}
-					    			List<String> pages = new ArrayList<>(bookData.getElementsByTagName("page").getLength());
-					    			for(int z = 0; z < bookData.getElementsByTagName("page").getLength(); z++){
-					    				pages.add(z, replaceColors(bookData.getElementsByTagName("page").item(z).getTextContent()));
-					    			}
-					    			short durability = Short.parseShort(bookData.getElementsByTagName("durability").item(0).getTextContent());
-					    			int amount = Integer.parseInt(bookData.getElementsByTagName("amount").item(0).getTextContent());
-					    			
-					    			//Give book
-					    			ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-									BookMeta meta = (BookMeta) book.getItemMeta();
-									meta.setTitle(title);
-									meta.setAuthor(author);
-									meta.setLore(lore);
-									meta.setPages(pages);
-									book.setItemMeta(meta);
-									book.setAmount(amount);
-									book.setDurability(durability);
-							        p.getInventory().addItem(book);
-					    		}else{
-					    			p.sendMessage(replaceColors(no_permission));
-					    		}
-		    				}
-	    				}//ELSE is not a normal book
-		    		}else{
-		    			//Element is of wrong type
-		    			p.sendMessage(replaceColors("/4/Misconfigured book"));
-		    		}
-		    		
+    				}//ELSE is not a normal book
+	    		}else{
+	    			//Element is of wrong type
+	    			p.sendMessage(replaceColors("/4/Misconfigured book"));
 	    		}
-	    		//Check if no book exists
-	    		if(no_books){
-	    			p.sendMessage(replaceColors(p_prefix + "The book '" + args_str + "/r//f/' does not exist"));
-	    		}
-			}catch(Exception e){
-				e.printStackTrace();
-			}
+	    		
+    		}
+    		//Check if no book exists
+    		if(no_books){
+    			p.sendMessage(replaceColors(p_prefix + "The book '" + args_str + "/r//f/' does not exist"));
+    		}
+		}catch(Exception e){
+			e.printStackTrace();
 		}
 	}
 	
