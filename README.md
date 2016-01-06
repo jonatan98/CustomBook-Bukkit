@@ -14,11 +14,11 @@ Plans:
 * Check for newer versions of the plugin
     * onCreate; perform the check and store some file or conf value if new version is uploaded
     * onPlayerJoin; 1. check player perms, 2. check file or conf value
-    * if possible, auto-update the plugin (not likely, but would be awesome. Might have to be done through another plugin)
 * Website where you can write the contents of the book, and it will be converted to XML for you
+* Function to take a book created in the server and then put it into the Books.xml
 * Make books buyable (Vault)
     * Permission to buypass price
     * Command to edit prices?
-
-* Idk about this one, but could be cool
-    * Make it a library so that it could be used in other people's plugins
+I don't know if these are going to happen, but it would be cool if they did
+* Auto-update the plugin with a command (not likely, but would be awesome. Might have to be done through another plugin)
+* Make it a library so that it could be used in other people's plugins
