@@ -1,6 +1,9 @@
 package me.jonna.CustomBook;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +32,11 @@ import org.w3c.dom.Node;
 public class Main extends JavaPlugin implements Listener{	
 	public static File _file_books;
 	
+	//Console prefix
 	public static String c_prefix = "/a/[/5/Books/a/] /f/";
+	//Debug prefix
+	public static String d_prefix = "/a/[/5/Books Debug/a/] /f/";
+	//Player prefix
 	public static String p_prefix = "/a/[/5/Books/a/] /f/";
 	public static String no_permission = "/4/You have no permission to perform this command.";
 	
@@ -66,6 +73,23 @@ public class Main extends JavaPlugin implements Listener{
 			}
 		    Functions.setDefaultContent();
 		}
+		try{
+			BufferedReader br = new BufferedReader(new FileReader(_file_books));     
+			if (br.readLine() == null) {
+			    console.sendMessage(replaceColors(c_prefix + "Empty Books.xml file", true));
+			    Functions.setDefaultContent();
+			}else{
+				if(debug){
+					console.sendMessage(replaceColors(d_prefix + "Books.xml is not empty", true));
+				}
+			}
+			br.close();
+		}catch(FileNotFoundException e){
+			console.sendMessage(replaceColors(c_prefix + "Tried to get Books.xml file but file not found.", true));
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+
 		Functions.verifyXMLVersions();
 		Functions.initConfig();
 		
@@ -233,6 +257,16 @@ public class Main extends JavaPlugin implements Listener{
 					List<String> authors = pdfFile.getAuthors();
 					console.sendMessage(replaceColors(c_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0), true));
 					console.sendMessage("Website: " + pdfFile.getWebsite());
+				}else if(args[0].equalsIgnoreCase("debug")){
+					if(getConfig().getBoolean("debug")){
+						getConfig().set("debug", false);
+						saveConfig();
+						console.sendMessage(replaceColors(d_prefix + "Disabled", true));
+					}else{
+						getConfig().set("debug", true);
+						saveConfig();
+						console.sendMessage(replaceColors(d_prefix + "Enabled", true));
+					}
 				}else{
 					//This is what happens if the command is forced trough console
 					console.sendMessage(replaceColors(c_prefix + 
