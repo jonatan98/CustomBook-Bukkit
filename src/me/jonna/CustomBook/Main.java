@@ -187,6 +187,7 @@ public class Main extends JavaPlugin implements Listener{
 			}else{
 				if(args.length == 0){
 					console.sendMessage(replaceColors(c_prefix + "Help", true));
+					console.sendMessage(replaceColors("/cb give <player name / all> <book name> - give a book to a player or all players", true));
 					console.sendMessage(replaceColors("/cb reload - reload the config.yml", true));
 					console.sendMessage(replaceColors("/cb version - plugin info", true));
 				}else if(args[0].equalsIgnoreCase("reload")){
@@ -194,6 +195,27 @@ public class Main extends JavaPlugin implements Listener{
 					debug = getConfig().getBoolean("debug");
 					console.sendMessage(replaceColors(c_prefix + 
 							"Reloaded plugin"));
+				}else if(args[0].equalsIgnoreCase("give")){
+					//Give book to player from console
+					if(args.length >= 3){
+						String args_str = "";
+						for(int o = 2; o < args.length; o++){ args_str += args[o] + " "; }
+						args_str = args_str.trim();
+						if(args[1].equalsIgnoreCase("*") || args[1].equalsIgnoreCase("all")){
+							//Give to all players
+							giveBook("console", null, args_str);
+						}else{
+							//Give to specific player
+							Player targetPlayer = Bukkit.getPlayerExact(args[1]);
+							if(targetPlayer != null){
+								giveBook("console", Bukkit.getPlayer(args[1]), args_str);
+							}else{
+								sendMessage(null, replaceColors("/4/No player by the name " + args[1] + " is online", true));
+							}
+						}
+					}else{
+						sendMessage(null, replaceColors("/cb give <player/*> <bookname>", true));
+					}
 				}else if(args[0].equalsIgnoreCase("version")){
 					PluginDescriptionFile pdfFile = this.getDescription();
 					List<String> authors = pdfFile.getAuthors();
@@ -279,6 +301,9 @@ public class Main extends JavaPlugin implements Listener{
 	}
 	
 	//Function to give book to a specific player or all players
+	private void giveBook(String sender, Player tp, String args_str){
+		giveBook(null, tp, args_str, "books.give."); //Last argument just because I'm too lazy to make a function that doesn't need it
+	}
 	private void giveBook(Player p, String args_str, String permission){
 		giveBook(p, p, args_str, permission);
 	}
@@ -311,15 +336,21 @@ public class Main extends JavaPlugin implements Listener{
 				    		//TODO find config / permissions to see which custom permissions are required
 				    		//Node config = bookData.getElementsByTagName("config").item(0);
 				    		boolean hasPermission = false;
-			    			String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
-				    		for(int z = 0; z < permissions.length; z++){
-				    			if(p.hasPermission(permission + permissions[z].trim())){
-				    				hasPermission = true;
-				    				z = permissions.length;
-				    			}
+				    		if(p != null){
+				    			String[] permissions = bookData.getElementsByTagName("permissions").item(0).getTextContent().split(",");
+					    		for(int z = 0; z < permissions.length; z++){
+					    			if(p.hasPermission(permission + permissions[z].trim())){
+					    				hasPermission = true;
+					    				z = permissions.length;
+					    			}
+					    		}
+					    		if(p.hasPermission(permission + "*") || p.hasPermission("books.*")){
+					    			hasPermission = true;
+					    		}
+				    		}else{
+				    			hasPermission = true;
 				    		}
-				    		if(hasPermission || p.hasPermission(permission + "*") || 
-				    				p.hasPermission("books.*")){
+				    		if(hasPermission){
 				    			String title = replaceColors(bookData.getElementsByTagName("title").item(0).getTextContent());
 				    			String author = replaceColors(bookData.getElementsByTagName("author").item(0).getTextContent());
 				    			List<String> lore = new ArrayList<>(bookData.getElementsByTagName("lore").getLength());
@@ -345,10 +376,12 @@ public class Main extends JavaPlugin implements Listener{
 								book.setDurability(durability);
 						        if(tp != null){
 						        	tp.getInventory().addItem(book);
+						        	sendMessage(p, replaceColors("/a/Book \"" + title + "\" has been given to " + tp.getName()));
 						        }else{
 						        	for(Player player : Bukkit.getOnlinePlayers()){
 						        		player.getInventory().addItem(book);
 						        	}
+						        	sendMessage(p, replaceColors("/a/Book \"" + title + "\" has been given to all online players"));
 						        }
 				    		}
 	    				}
@@ -459,6 +492,14 @@ public class Main extends JavaPlugin implements Listener{
     		}
 		}catch(Exception e){
 			e.printStackTrace();
+		}
+	}
+	
+	private void sendMessage(Player p, String msg){
+		if(p == null){
+			console.sendMessage(msg);
+		}else{
+			p.sendMessage(msg);
 		}
 	}
 	

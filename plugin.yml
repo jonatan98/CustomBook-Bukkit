@@ -1,6 +1,6 @@
 name: Books
 main: me.jonna.CustomBook.Main
-version: 2.0.1
+version: 2.2.0
 authors: [jn1234]
 website: http://dev.bukkit.org/bukkit-plugins/custom-book/
 description: Custom book plugin by jn1234
@@ -9,18 +9,3 @@ commands:
         description: CustomBook commands
     custombook:
         description: CustomBook commands
-permissions:
-  books.admin:
-    description: All books commands
-    children:
-      books.custom.*: true
-      books.join.*: true
-      books.create.*: true
-      books.reload: true
-      books.help: true
-  books.user:
-    description: Commands meant for users
-    children:
-      books.custom.*: true
-      books.join.*: true
-      books.help: true
