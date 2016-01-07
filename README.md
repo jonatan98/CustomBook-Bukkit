@@ -19,6 +19,7 @@ Plans:
 * Make books buyable (Vault)
     * Permission to buypass price
     * Command to edit prices?
-I don't know if these are going to happen, but it would be cool if they did
-* Auto-update the plugin with a command (not likely, but would be awesome. Might have to be done through another plugin)
+
+Not likely, but would be awesome:
+* Auto-update the plugin with a command (Might have to be done through another plugin)
 * Make it a library so that it could be used in other people's plugins
