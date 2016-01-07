@@ -29,7 +29,7 @@ import org.w3c.dom.Node;
 public class Main extends JavaPlugin implements Listener{	
 	public static File _file_books;
 	
-	public static String c_prefix = "[Books] ";
+	public static String c_prefix = "/a/[/5/Books/a/] /f/";
 	public static String p_prefix = "/a/[/5/Books/a/] /f/";
 	public static String no_permission = "/4/You have no permission to perform this command.";
 	
@@ -187,6 +187,7 @@ public class Main extends JavaPlugin implements Listener{
 			}else{
 				if(args.length == 0){
 					console.sendMessage(replaceColors(c_prefix + "Help", true));
+					console.sendMessage(replaceColors("/cb list [join / normal] - get a list of books"));
 					console.sendMessage(replaceColors("/cb give <player name / all> <book name> - give a book to a player or all players", true));
 					console.sendMessage(replaceColors("/cb reload - reload the config.yml", true));
 					console.sendMessage(replaceColors("/cb version - plugin info", true));
@@ -195,6 +196,17 @@ public class Main extends JavaPlugin implements Listener{
 					debug = getConfig().getBoolean("debug");
 					console.sendMessage(replaceColors(c_prefix + 
 							"Reloaded plugin"));
+				}else if(args[0].equalsIgnoreCase("list")){
+					//List all books
+					if(args.length == 1 || !args[1].equalsIgnoreCase("join")){
+						//List of normal books
+						sendMessage(null, replaceColors(c_prefix + "/6/Normal books"));
+						listBooks(null, "normal");
+					}else{
+						//List of join books
+						sendMessage(null, replaceColors(c_prefix + "/6/Join Books"));
+						listBooks(null, "join");
+					}
 				}else if(args[0].equalsIgnoreCase("give")){
 					//Give book to player from console
 					if(args.length >= 3){
@@ -453,23 +465,29 @@ public class Main extends JavaPlugin implements Listener{
     						permission_str = "books.join.";
     					}
 			    		boolean hasPermission = false;
-		    			String[] permissions = bookData.getElementsByTagName("permissions").item(permission_index).getTextContent().split(",");
-			    		for(int z = 0; z < permissions.length; z++){
-			    			if(p.hasPermission(permission_str + permissions[z].trim())){
-			    				hasPermission = true;
-			    				z = permissions.length;
-			    			}
+			    		if(p != null){
+			    			String[] permissions = bookData.getElementsByTagName("permissions").item(permission_index).getTextContent().split(",");
+				    		for(int z = 0; z < permissions.length; z++){
+				    			if(p.hasPermission(permission_str + permissions[z].trim())){
+				    				hasPermission = true;
+				    				z = permissions.length;
+				    			}
+				    		}
+				    		if(p.hasPermission(permission_str + "*") || p.hasPermission("books.*")){
+				    			hasPermission = true;
+				    		}
+			    		}else{
+			    			hasPermission = true;
 			    		}
 			    		
-			    		if(hasPermission || p.hasPermission(permission_str + "*") || 
-			    				p.hasPermission("books.*")){
+			    		if(hasPermission){
 			    			String title = bookData.getElementsByTagName("title").item(0).getTextContent();
 			    			String author = bookData.getElementsByTagName("author").item(0).getTextContent();
 			    			if(type.equalsIgnoreCase("join")){
-			    				p.sendMessage(replaceColors(title + "/r//f/ by " + author));
+			    				sendMessage(p, replaceColors(title + "/r//f/ by " + author));
 			    			}else{
 			    				String command = bookData.getElementsByTagName("command").item(0).getTextContent();
-			    				p.sendMessage(replaceColors("/cb " + command + ": " + title + "/r//f/ by " + author));
+			    				sendMessage(p, replaceColors("/cb " + command + ": " + title + "/r//f/ by " + author));
 			    			}
 			    			displayed_book = true;
 			    		}else{
@@ -479,7 +497,9 @@ public class Main extends JavaPlugin implements Listener{
     				}//ELSE the book is not of requested type
 	    		}else{
 	    			//Element is of wrong type
-	    			console.sendMessage(replaceColors("/4/Misconfigured book"));
+	    			if(debug){
+	    				console.sendMessage(replaceColors("/4/Misconfigured book"));
+	    			}
 	    		}
 	    		
     		}
