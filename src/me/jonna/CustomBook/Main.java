@@ -287,6 +287,7 @@ public class Main extends JavaPlugin implements Listener{
 			commandos.add("cb help - view this information");
 			commandos.add("cb list [join / normal] - get a list of books");
 			commandos.add("cb <book name> - receive a book");
+			commandos.add("cb create <book type> [command] - save the book in your hand");
 			
 			p.sendMessage(replaceColors(p_prefix + "Help"));
 			for(int e = 0; e < commandos.size(); e++){
@@ -336,6 +337,9 @@ public class Main extends JavaPlugin implements Listener{
 			List<String> authors = pdfFile.getAuthors();
 			p.sendMessage(replaceColors(p_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0)));
 			p.sendMessage("Website: " + pdfFile.getWebsite());
+		}else if(args[0].equalsIgnoreCase("create")){
+			//Command to fetch a book from the players inventory and save it in the books file
+			createBook(p, args);
 		}else{
 			//Convert command into a string, to enable multi-word commands
 			String args_str = "";
@@ -546,6 +550,27 @@ public class Main extends JavaPlugin implements Listener{
     		}
 		}catch(Exception e){
 			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void createBook(Player p, String[] args){
+		if(p.hasPermission("books.create") || p.hasPermission("books.*")){
+			if(p.getItemInHand().getTypeId() == 387){
+				if(args.length >= 3){
+					String args_str = "";
+					for(int i = 1; i < args.length; i++){ args_str += args[i] + " "; }
+					args_str = args_str.trim();
+					
+				}else{
+					p.sendMessage("/cb create <types> [command]");
+					p.sendMessage("Example: /cb create firstjoin,normal,join information");
+				}
+			}else{
+				p.sendMessage(replaceColors("/4/You have to hold a written book."));
+			}
+		}else{
+			p.sendMessage(replaceColors(no_permission));
 		}
 	}
 	
