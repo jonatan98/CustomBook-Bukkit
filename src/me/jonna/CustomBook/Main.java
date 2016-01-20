@@ -561,6 +561,37 @@ public class Main extends JavaPlugin implements Listener{
 					String args_str = "";
 					for(int i = 1; i < args.length; i++){ args_str += args[i] + " "; }
 					args_str = args_str.trim();
+					/*
+					 * Calculate how many of the arguments are defining the book type
+					 */
+					String book_type = "";
+					String book_name = "";
+					String[] types = args_str.split(",");
+					for(int i = 0; i < types.length; i++){
+						//Maybe add some kind of check to see whether the types are accepted or not
+						if(i == types.length - 1){
+							//Last index
+							book_type += types[i].trim().split(" ")[0];
+							book_name = types[i].trim().split(" ", 2)[1];
+						}else{
+							book_type += types[i].trim() + ", ";
+						}
+					}
+					
+					/*
+					 * Get book item and get the contents
+					 */
+					ItemStack book = (ItemStack) p.getItemInHand();
+					BookMeta meta = (BookMeta) book.getItemMeta();
+					String book_author = meta.getAuthor();
+					String book_title = meta.getTitle();
+					String book_displayname = meta.getDisplayName();
+					List<String> book_lore = meta.getLore();
+					List<String> book_pages = meta.getPages();
+					
+					/*
+					 * Save the book in the xml document (and take backup of old file in case anything goes wrong)
+					 */
 					
 				}else{
 					p.sendMessage("/cb create <types> [command]");
