@@ -565,14 +565,14 @@ public class Main extends JavaPlugin implements Listener{
 					 * Calculate how many of the arguments are defining the book type
 					 */
 					String book_type = "";
-					String book_name = "";
+					String book_command = "";
 					String[] types = args_str.split(",");
 					for(int i = 0; i < types.length; i++){
 						//Maybe add some kind of check to see whether the types are accepted or not
 						if(i == types.length - 1){
 							//Last index
 							book_type += types[i].trim().split(" ")[0];
-							book_name = types[i].trim().split(" ", 2)[1];
+							book_command = types[i].trim().split(" ", 2)[1];
 						}else{
 							book_type += types[i].trim() + ", ";
 						}
@@ -585,14 +585,20 @@ public class Main extends JavaPlugin implements Listener{
 					BookMeta meta = (BookMeta) book.getItemMeta();
 					String book_author = meta.getAuthor();
 					String book_title = meta.getTitle();
-					String book_displayname = meta.getDisplayName();
-					List<String> book_lore = meta.getLore();
-					List<String> book_pages = meta.getPages();
+					String[] book_lore = new String[meta.getLore().size()];
+					for(int i = 0; i < book_lore.length; i++){
+						//Convert spaces into /z/ tags
+						book_lore[i] = replaceColorsInverse(meta.getLore().get(i));
+					}
+					String[] book_pages = new String[meta.getPages().size()];
+					for(int i = 0; i < book_pages.length; i++){
+						//Convert spaces into /z/ tags
+						book_pages[i] = replaceColorsInverse(meta.getPage(i + 1));
+					}
 					
 					/*
 					 * Save the book in the xml document (and take backup of old file in case anything goes wrong)
 					 */
-					
 				}else{
 					p.sendMessage("/cb create <types> [command]");
 					p.sendMessage("Example: /cb create firstjoin,normal,join information");
@@ -605,6 +611,9 @@ public class Main extends JavaPlugin implements Listener{
 		}
 	}
 	
+	private void sendMessage(String msg){
+		sendMessage(null, msg);
+	}
 	private void sendMessage(Player p, String msg){
 		if(p == null){
 			console.sendMessage(msg);
@@ -613,24 +622,47 @@ public class Main extends JavaPlugin implements Listener{
 		}
 	}
 	
+	public static String replaceColorsInverse(String s){
+		return replaceColors(s, false, true);
+	}
 	public static String replaceColors(String s){
-		return replaceColors(s, false);
+		return replaceColors(s, false, false);
 	}
 	public static String replaceColors(String s, boolean console){
+		return replaceColors(s, console, false);
+	}
+	public static String replaceColors(String s, boolean console, boolean inverse){
 		String prefix = "/";
 		String suffix = "/";
 		
-		return s.replaceAll(prefix + "0" + suffix, ChatColor.BLACK + "").replaceAll(prefix + "1" + suffix, ChatColor.DARK_BLUE + "")
-				.replaceAll(prefix + "2" + suffix, ChatColor.DARK_GREEN + "").replaceAll(prefix + "3" + suffix, ChatColor.DARK_AQUA + "")
-				.replaceAll(prefix + "4" + suffix, ChatColor.DARK_RED + "").replaceAll(prefix + "5" + suffix, ChatColor.DARK_PURPLE + "")
-				.replaceAll(prefix + "6" + suffix, ChatColor.GOLD + "").replaceAll(prefix + "7" + suffix, ChatColor.GRAY + "")
-				.replaceAll(prefix + "8" + suffix, ChatColor.DARK_GRAY + "").replaceAll(prefix + "9" + suffix, ChatColor.BLUE + "")
-				.replaceAll(prefix + "a" + suffix, ChatColor.GREEN + "").replaceAll(prefix + "b" + suffix, ChatColor.AQUA + "")
-				.replaceAll(prefix + "c" + suffix, ChatColor.RED + "").replaceAll(prefix + "d" + suffix, ChatColor.LIGHT_PURPLE + "")
-				.replaceAll(prefix + "e" + suffix, ChatColor.YELLOW + "").replaceAll(prefix + "f" + suffix, ChatColor.WHITE + "")
-				.replaceAll(prefix + "m" + suffix, ChatColor.STRIKETHROUGH + "").replaceAll(prefix + "n" + suffix, ChatColor.UNDERLINE + "")
-				.replaceAll(prefix + "l" + suffix, ChatColor.BOLD + "").replaceAll(prefix + "k" + suffix, ChatColor.MAGIC + "")
-				.replaceAll(prefix + "o" + suffix, ChatColor.ITALIC + "").replaceAll(prefix + "r" + suffix, ChatColor.RESET + "")
-				.replaceAll(prefix + "z" + suffix, "\n");
+		String res = "";
+		if(!inverse){
+			res = s.replaceAll(prefix + "0" + suffix, ChatColor.BLACK + "").replaceAll(prefix + "1" + suffix, ChatColor.DARK_BLUE + "")
+					.replaceAll(prefix + "2" + suffix, ChatColor.DARK_GREEN + "").replaceAll(prefix + "3" + suffix, ChatColor.DARK_AQUA + "")
+					.replaceAll(prefix + "4" + suffix, ChatColor.DARK_RED + "").replaceAll(prefix + "5" + suffix, ChatColor.DARK_PURPLE + "")
+					.replaceAll(prefix + "6" + suffix, ChatColor.GOLD + "").replaceAll(prefix + "7" + suffix, ChatColor.GRAY + "")
+					.replaceAll(prefix + "8" + suffix, ChatColor.DARK_GRAY + "").replaceAll(prefix + "9" + suffix, ChatColor.BLUE + "")
+					.replaceAll(prefix + "a" + suffix, ChatColor.GREEN + "").replaceAll(prefix + "b" + suffix, ChatColor.AQUA + "")
+					.replaceAll(prefix + "c" + suffix, ChatColor.RED + "").replaceAll(prefix + "d" + suffix, ChatColor.LIGHT_PURPLE + "")
+					.replaceAll(prefix + "e" + suffix, ChatColor.YELLOW + "").replaceAll(prefix + "f" + suffix, ChatColor.WHITE + "")
+					.replaceAll(prefix + "m" + suffix, ChatColor.STRIKETHROUGH + "").replaceAll(prefix + "n" + suffix, ChatColor.UNDERLINE + "")
+					.replaceAll(prefix + "l" + suffix, ChatColor.BOLD + "").replaceAll(prefix + "k" + suffix, ChatColor.MAGIC + "")
+					.replaceAll(prefix + "o" + suffix, ChatColor.ITALIC + "").replaceAll(prefix + "r" + suffix, ChatColor.RESET + "")
+					.replaceAll(prefix + "z" + suffix, "\n");
+		}else{
+			res = s.replaceAll(ChatColor.BLACK + "", prefix + "0" + suffix).replaceAll(ChatColor.DARK_BLUE + "", prefix + "1" + suffix)
+					.replaceAll(ChatColor.DARK_GREEN + "", prefix + "2" + suffix).replaceAll(ChatColor.DARK_AQUA + "", prefix + "3" + suffix)
+					.replaceAll(ChatColor.DARK_RED + "", prefix + "4" + suffix).replaceAll(ChatColor.DARK_PURPLE + "", prefix + "5" + suffix)
+					.replaceAll(ChatColor.GOLD + "", prefix + "6" + suffix).replaceAll(ChatColor.GRAY + "", prefix + "7" + suffix)
+					.replaceAll(ChatColor.DARK_GRAY + "", prefix + "8" + suffix).replaceAll(ChatColor.BLUE + "", prefix + "9" + suffix)
+					.replaceAll(ChatColor.GREEN + "", prefix + "a" + suffix).replaceAll(ChatColor.AQUA + "", prefix + "b" + suffix)
+					.replaceAll(ChatColor.RED + "", prefix + "c" + suffix).replaceAll(ChatColor.LIGHT_PURPLE + "", prefix + "d" + suffix)
+					.replaceAll(ChatColor.YELLOW + "", prefix + "e" + suffix).replaceAll(ChatColor.WHITE + "", prefix + "f" + suffix)
+					.replaceAll(ChatColor.STRIKETHROUGH + "", prefix + "m" + suffix).replaceAll(ChatColor.UNDERLINE + "", prefix + "n" + suffix)
+					.replaceAll(ChatColor.BOLD + "", prefix + "l" + suffix).replaceAll(ChatColor.MAGIC + "", prefix + "k" + suffix)
+					.replaceAll(ChatColor.ITALIC + "", prefix + "o" + suffix).replaceAll(ChatColor.RESET + "", prefix + "r" + suffix)
+					.replaceAll("\n", prefix + "z" + suffix);
+		}
+		return res;
 	}
 }
