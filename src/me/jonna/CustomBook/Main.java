@@ -62,10 +62,10 @@ public class Main extends JavaPlugin implements Listener{
 		if(!_file_books.exists()){
 		    try {
 				if(_file_books.createNewFile()){
-					console.sendMessage(replaceColors(c_prefix + 
+					sendMessage(replaceColors(c_prefix + 
 							"Books.xml did not exist, but was successfully created", true));
 				}else{
-					console.sendMessage(replaceColors(c_prefix + 
+					sendMessage(replaceColors(c_prefix + 
 							"Books.xml did not exist, and failed to be created", true));
 				}
 			} catch (IOException e) {
@@ -76,16 +76,16 @@ public class Main extends JavaPlugin implements Listener{
 		try{
 			BufferedReader br = new BufferedReader(new FileReader(_file_books));     
 			if (br.readLine() == null) {
-			    console.sendMessage(replaceColors(c_prefix + "Empty Books.xml file", true));
+			    sendMessage(replaceColors(c_prefix + "Empty Books.xml file", true));
 			    Functions.setDefaultContent();
 			}else{
 				if(debug){
-					console.sendMessage(replaceColors(d_prefix + "Books.xml is not empty", true));
+					sendMessage(replaceColors(d_prefix + "Books.xml is not empty", true));
 				}
 			}
 			br.close();
 		}catch(FileNotFoundException e){
-			console.sendMessage(replaceColors(c_prefix + "Tried to get Books.xml file but file not found.", true));
+			sendMessage(replaceColors(c_prefix + "Tried to get Books.xml file but file not found.", true));
 		}catch(IOException e){
 			e.printStackTrace();
 		}
@@ -171,7 +171,7 @@ public class Main extends JavaPlugin implements Listener{
 					        p.getInventory().addItem(book);
 			    		}else{
 			    			if(debug){
-				    			console.sendMessage(replaceColors(c_prefix + 
+				    			sendMessage(replaceColors(c_prefix + 
 				    					p.getName() + " has no permission to get the join book '" + 
 				    					bookData.getElementsByTagName("title").item(0).getTextContent()
 				    					+ "/r/' by " + 
@@ -182,19 +182,19 @@ public class Main extends JavaPlugin implements Listener{
 	    		}else{
 	    			//Element is of wrong type
 	    			if(debug){
-		    			console.sendMessage(replaceColors(c_prefix + 
+		    			sendMessage(replaceColors(c_prefix + 
 		    					"Element is of wrong type (misconfigured book)", true));
 	    			}
 	    		}
     		}
     		if(doc.getElementsByTagName("book").getLength() == 0 && debug){
-    			console.sendMessage(replaceColors(
+    			sendMessage(replaceColors(
     					"No books are created", true));
     		}
 		}catch(Exception e){
 			e.printStackTrace();
 			if(debug){
-				console.sendMessage(replaceColors(c_prefix + 
+				sendMessage(replaceColors(c_prefix + 
 						"Failed to read Books.xml", true));
 			}
 		}
@@ -210,15 +210,15 @@ public class Main extends JavaPlugin implements Listener{
 				bookCommand(player, args);
 			}else{
 				if(args.length == 0){
-					console.sendMessage(replaceColors(c_prefix + "Help", true));
-					console.sendMessage(replaceColors("/cb list [join / normal] - get a list of books"));
-					console.sendMessage(replaceColors("/cb give <player name / all> <book name> - give a book to a player or all players", true));
-					console.sendMessage(replaceColors("/cb reload - reload the config.yml", true));
-					console.sendMessage(replaceColors("/cb version - plugin info", true));
+					sendMessage(replaceColors(c_prefix + "Help", true));
+					sendMessage(replaceColors("/cb list [join / normal] - get a list of books"));
+					sendMessage(replaceColors("/cb give <player name / all> <book name> - give a book to a player or all players", true));
+					sendMessage(replaceColors("/cb reload - reload the config.yml", true));
+					sendMessage(replaceColors("/cb version - plugin info", true));
 				}else if(args[0].equalsIgnoreCase("reload")){
 					reloadConfig();
 					debug = getConfig().getBoolean("debug");
-					console.sendMessage(replaceColors(c_prefix + 
+					sendMessage(replaceColors(c_prefix + 
 							"Reloaded plugin"));
 				}else if(args[0].equalsIgnoreCase("list")){
 					//List all books
@@ -255,21 +255,21 @@ public class Main extends JavaPlugin implements Listener{
 				}else if(args[0].equalsIgnoreCase("version")){
 					PluginDescriptionFile pdfFile = this.getDescription();
 					List<String> authors = pdfFile.getAuthors();
-					console.sendMessage(replaceColors(c_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0), true));
-					console.sendMessage("Website: " + pdfFile.getWebsite());
+					sendMessage(replaceColors(c_prefix + pdfFile.getName() + " version " + pdfFile.getVersion() + " by " + authors.get(0), true));
+					sendMessage("Website: " + pdfFile.getWebsite());
 				}else if(args[0].equalsIgnoreCase("debug")){
 					if(getConfig().getBoolean("debug")){
 						getConfig().set("debug", false);
 						saveConfig();
-						console.sendMessage(replaceColors(d_prefix + "Disabled", true));
+						sendMessage(replaceColors(d_prefix + "Disabled", true));
 					}else{
 						getConfig().set("debug", true);
 						saveConfig();
-						console.sendMessage(replaceColors(d_prefix + "Enabled", true));
+						sendMessage(replaceColors(d_prefix + "Enabled", true));
 					}
 				}else{
 					//This is what happens if the command is forced trough console
-					console.sendMessage(replaceColors(c_prefix + 
+					sendMessage(replaceColors(c_prefix + 
 							"&4Books can not be given to console", true));
 				}
 			}
@@ -476,7 +476,7 @@ public class Main extends JavaPlugin implements Listener{
     				String[] types = bookData.getElementsByTagName("type").item(0).getTextContent().split(",");
     				for(int w = 0; w < types.length; w++){
     					if(debug){
-    						console.sendMessage("Book type " + w + "of book " + 
+    						sendMessage("Book type " + w + "of book " + 
     								bookData.getElementsByTagName("title").item(0).getTextContent() + 
     								": " + types[w].trim());
     					}
@@ -536,7 +536,7 @@ public class Main extends JavaPlugin implements Listener{
 	    		}else{
 	    			//Element is of wrong type
 	    			if(debug){
-	    				console.sendMessage(replaceColors("/4/Misconfigured book"));
+	    				sendMessage(replaceColors("/4/Misconfigured book"));
 	    			}
 	    		}
 	    		
@@ -587,12 +587,19 @@ public class Main extends JavaPlugin implements Listener{
 					String book_title = meta.getTitle();
 					String[] book_lore = new String[meta.getLore().size()];
 					for(int i = 0; i < book_lore.length; i++){
-						//Convert spaces into /z/ tags
+						/* 
+						 * Replace colors and new lines with the codes (/code/)
+						 */
 						book_lore[i] = replaceColorsInverse(meta.getLore().get(i));
 					}
 					String[] book_pages = new String[meta.getPages().size()];
 					for(int i = 0; i < book_pages.length; i++){
-						//Convert spaces into /z/ tags
+						/* 
+						 * Replace colors and new lines with the codes (/code/)
+						 * 
+						 * Pages start with index 1 instead of normal 0, 
+						 * but the result array will start at index 0
+						 */
 						book_pages[i] = replaceColorsInverse(meta.getPage(i + 1));
 					}
 					
