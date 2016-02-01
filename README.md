@@ -14,7 +14,6 @@ Plans:
 * Check for newer versions of the plugin
     * onCreate; perform the check and store some file or conf value if new version is uploaded
     * onPlayerJoin; 1. check player perms, 2. check file or conf value
-* Website where you can write the contents of the book, and it will be converted to XML for you
 * Function to take a book created in the server and then put it into the Books.xml
 * Make books buyable (Vault)
     * Permission to buypass price
