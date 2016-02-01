@@ -71,13 +71,15 @@ public class Main extends JavaPlugin implements Listener{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		    Functions.setDefaultContent();
+		    //Copy the default file to the plugin directory
+		    saveResource("Books.xml", true);
 		}
 		try{
 			BufferedReader br = new BufferedReader(new FileReader(_file_books));     
 			if (br.readLine() == null) {
 			    sendMessage(replaceColors(c_prefix + "Empty Books.xml file", true));
-			    Functions.setDefaultContent();
+			    //Copy the default file to the plugin directory
+			    saveResource("Books.xml", true);
 			}else{
 				if(debug){
 					sendMessage(replaceColors(d_prefix + "Books.xml is not empty", true));
@@ -90,7 +92,7 @@ public class Main extends JavaPlugin implements Listener{
 			e.printStackTrace();
 		}
 
-		Functions.verifyXMLVersions();
+		Functions.verifyXMLVersion();
 		Functions.initConfig();
 		
 		//TODO calculate if any books have too long pages, too long titles, etc.
